@@ -20,8 +20,7 @@ for t = 1:length(t_vec)
     plot(fixed_pt(2));
     plot(fixed_pt(3));
     axis([0 y_axis_lim 0 1]);
-    title(sprintf('diff eq convergence to fixed pt sim. t = %.2f',...
-        t_vec(t)));
+    title(sprintf('diff eq convergence to fixed pt sim. t = %.2f', t_vec(t)));
     legend('d = 1', 'd = 2', 'd = 3', 'd = 2 fixed pt', 'd = 3 fixed pt');
     pause(0.0001)
 end
