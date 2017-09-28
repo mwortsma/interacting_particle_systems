@@ -1,5 +1,5 @@
 function [t,s] = simulate_diffeq(k, lam, d, dt, t_end)
-% Returns a
+% Simulates the differential equation for s_1,...,s_k.
 
 % Get differential equation.
 dsdt = @(t,s) get_dsdt(k, lam, d, s);
