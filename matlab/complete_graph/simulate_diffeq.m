@@ -1,5 +1,7 @@
 function [t,s] = simulate_diffeq(k, lam, d, dt, t_end)
-% Simulates the differential equation for s_1,...,s_k.
+% Simulates the differential equation from the mitzenmacher paper for 
+% s_1,...,s_k for each timestep dt from 0 to t_end.
+% Rate parameter lambda = lam.
 
 % Get differential equation.
 dsdt = @(t,s) get_dsdt(k, lam, d, s);
