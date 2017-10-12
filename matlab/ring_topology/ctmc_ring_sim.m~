@@ -13,6 +13,7 @@ function [S_vect, Q_vect] = ...
 %% Return Values
 % S_vect = the vector s_1,...,s_k at the end of the simulation.
 % Q_vect = the vector of queue lengths at the end of the simulation.
+% maxes  = a vector where entry i is sup_t Q_i((t).
 
 % example usage ctmc_ring_sim(600,0.95,100,20,true,false,false)
 
@@ -21,6 +22,9 @@ function [S_vect, Q_vect] = ...
 % S(i) = M/n = ratio of queues with >= i items.
 queues = zeros(n,1); M = zeros(k,1); M(1) = n; S = M/n;
 
+% If maxes = true then maxes will be a vector returned where entry i is
+% sup_t Q_i(t).
+maxes = zeros(n,1);
 
 % Returns the neighborhood centered around i (taking into account wrapping
 % around the ring). E.g. if n = 10 then get_neighbors_index(10) = [9 10 1],
@@ -40,9 +44,9 @@ while t < t_end
         % If M/M/1 is true then the entering rates are lambda for each
         % queue.
         entering_rates = ones(n,1)*lam;
-    else
+    elseif changed_idx > 0
         % If not M/M/1 then there is choice.
-        entering_rates = zeros(n,1);
+        % entering_rates = zeros(n,1);
         for i = 1:length(queues)
             % get the neighbor set for queue i.
             for neighbor_set = get_neighbors_index(i,num_neighbors)
@@ -88,8 +92,9 @@ while t < t_end
     clf
     plot(S(1:20));
     title(sprintf("t = %.2f", t));
-    pause(1e-10)
    end
+   
+   pause(1e-10)
 end
 
 %% Return the state of S and Q.

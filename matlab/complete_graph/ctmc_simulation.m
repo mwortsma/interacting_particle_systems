@@ -1,4 +1,4 @@
-function err = ctmc_simulation(n,d,lam, t_end, make_plot)
+function [cplt_S, cplt_Q] = ctmc_simulation(n,d,lam, t_end, make_plot)
 % Use a continuous time markov chain to simulate the complete graph.
 % n = # of queues to use.
 % d = how many choices.
@@ -27,8 +27,11 @@ t = 0; dt = 0.01;
 [~, s_sim] = simulate_diffeq(k, lam, d, dt, t_end);
 
 % Keep track of error.
-num_error_recordings = 0;
-err = 0;
+% num_error_recordings = 0;
+% err = 0;
+
+% Form of fixed point equation from Mitzenmacher paper.
+fixed_pt = @(d) lam.^((d.^(0:k-1) - 1)/(d-1));
 
 while t < t_end
     %% get entering rates
@@ -83,22 +86,23 @@ while t < t_end
        % Error metric can be changed, for now it is being calculated as
        % err(t) = max_k abs( (diffeq_sim_s(k) - ctmc_sim(k)) )
        % then averaged at the end. 
-       num_nonzero = sum(S > 0);
-       derr = max(abs(...
-           (s_sim(floor(t/dt),1:num_nonzero)'- S(1:num_nonzero))));
-       err = err + derr;
-       num_error_recordings = num_error_recordings + 1;
+       % num_nonzero = sum(S > 0);
+       % derr = max(abs(...
+       %    (s_sim(floor(t/dt),1:num_nonzero)'- S(1:num_nonzero))));
+       % err = err + derr;
+       % num_error_recordings = num_error_recordings + 1;
        
        % if make_plot is true then also plot the simulated diff_eq
        if make_plot
             plot(s_sim(floor(t/dt),1:20));
-            title(sprintf("simulation. t = %.2f, ptwise max err = %.5f",...
-                t, derr));
-            legend('ctmc simulation', 'diffeq simulation')
+            fp = fixed_pt(d);
+            plot(fp(1:20));
+            title(sprintf("simulation. t = %.2f", t));
+            legend('ctmc simulation', 'diffeq simulation', 'fixed pt')
        end
    end
    pause(1e-10)
 end
-% return the averaged error metric.
-err = err / num_error_recordings;
+cplt_S = S;
+cplt_Q = queues;
 end

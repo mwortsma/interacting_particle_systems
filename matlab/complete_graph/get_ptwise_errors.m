@@ -1,5 +1,7 @@
 % Visualize the average max pointwise error for different values of n.
 
+% Depricated, this script is no longer in use.
+
 n_vals = [5 10 25 50 75 100 150 200 250 300 400 500 750 1000];
 errs = zeros(length(n_vals),1);
 
