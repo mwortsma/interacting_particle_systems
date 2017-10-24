@@ -13,10 +13,10 @@ cplt_Q_vects = zeros(num_samples, n);
 
 fixed_pt = @(d) lam.^((d.^(0:k-1) - 1)/(d-1));
 
-%% Obtain Ring Topology Data
+%% Obtain Complete Graph Data
 for iter = 1:num_samples
     tic;
-    % run the ring sim for a random length of time ~ [20,40]
+    % run the Complete Graph Sim for a random length of time ~ [20,40]
     [S, Q] = ...
         ctmc_simulation(n,d,lam, t_end, false);
     toc;
@@ -25,6 +25,31 @@ for iter = 1:num_samples
     % Comment out to save data after each run in case computer crashes.
     save('cplt_S_vects.mat','cplt_S_vects');
     save('cplt_Q_vects.mat', 'cplt_Q_vects');
+    
+    clf
+    hold on
+    plot(S(1:20));
+    fp = fixed_pt(d);
+    plot(fp(1:20));
+    legend('sim', 'fixed pt');
+            
+    disp(iter);
+end
+
+%% Obtain MM1 Data
+mm1_S_vects = zeros(num_samples, k);
+mm1_Q_vects = zeros(num_samples, n);
+for iter = 1:num_samples
+    tic;
+    % run the ring sim for a random length of time ~ [20,40]
+    [S, Q] = ...
+        ctmc_simulation(n,1,lam, t_end, false);
+    toc;
+    mm1_S_vects(iter,:) = S;
+    mm1_Q_vects(iter,:) = Q;
+    % Comment out to save data after each run in case computer crashes.
+    save('mm1_S_vects.mat','mm1_S_vects');
+    save('mm1_Q_vects.mat', 'mm1_Q_vects');
     
     clf
     hold on
