@@ -33,6 +33,10 @@ t = 0; dt = 0.01;
 % Form of fixed point equation from Mitzenmacher paper.
 fixed_pt = @(d) lam.^((d.^(0:k-1) - 1)/(d-1));
 
+recurrant_state = zeros(k,1);
+num_recur = 0;
+iter = 0;
+oft_plot = 400;
 while t < t_end
     %% get entering rates
     entering_rates_for_each_s = ...
@@ -69,9 +73,23 @@ while t < t_end
    
    %% Visualize S if make_pot = true
    if make_plot
-    clf
-    hold on
-    plot(S(1:20));
+    if mod(iter, oft_plot) == 0
+        clf
+        hold on
+        plot(S(1:20));
+    end
+   end
+   
+   %% Recurrant state
+   
+   if t > 50 && recurrant_state(1) == 0
+       recurrant_state = S
+   end
+   
+   if t > 50 && recurrant_state(1) ~= 0
+       if S == recurrant_state
+           num_recur = num_recur + 1
+       end
    end
    
    %% Caluclate Error and Plot Simulated Diffeq if make_plot = True.
@@ -94,13 +112,17 @@ while t < t_end
        
        % if make_plot is true then also plot the simulated diff_eq
        if make_plot
-            plot(s_sim(floor(t/dt),1:20));
-            fp = fixed_pt(d);
-            plot(fp(1:20));
-            title(sprintf("simulation. t = %.2f", t));
-            legend('ctmc simulation', 'diffeq simulation', 'fixed pt')
+            if mod(iter, oft_plot) == 0
+                plot(s_sim(floor(t/dt),1:20));
+                fp = fixed_pt(d);
+                plot(fp(1:20));
+                title(sprintf("simulation. t = %.2f", t));
+                legend('ctmc simulation', 'diffeq simulation', 'fixed pt')
+            end
+      
        end
    end
+   iter = iter + 1;
    pause(1e-10)
 end
 cplt_S = S;

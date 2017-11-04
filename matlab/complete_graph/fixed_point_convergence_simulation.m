@@ -36,6 +36,7 @@ for t = 1:length(t_vec)
     plot(sim_vec(3,t));
     plot(fixed_pt(2));
     plot(fixed_pt(3));
+    plot(lam.^(1:y_axis_lim));
     axis([0 y_axis_lim 0 1]);
     title(sprintf(...
         'diff eq convergence to fixed pt sim. t = %.2f', t_vec(t)));

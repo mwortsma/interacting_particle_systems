@@ -1,4 +1,4 @@
-load('/Users/mitchellw/Documents/Thesis/code/matlab/ring_topology/q.mat')
+load('/Users/mitchellw/Documents/Thesis/code/matlab/ring_topology/ring_Q_vects.mat')
 load('/Users/mitchellw/Documents/Thesis/code/matlab/complete_graph/cplt_Q_vects.mat')
 load('/Users/mitchellw/Documents/Thesis/code/matlab/complete_graph/mm1_Q_vects.mat')
 

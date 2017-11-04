@@ -18,13 +18,13 @@ for iter = 1:num_samples
     tic;
     % run the ring sim for a random length of time ~ [20,40]
     [S, Q] = ...
-        ctmc_ring_sim(n, lam, k, randi([20,40]), false, false, 2);
+        ctmc_ring_sim(n, lam, k, randi([20,40]), false, false, 1);
     toc;
     ring_S_vects(iter,:) = S;
     ring_Q_vects(iter,:) = Q;
     % Comment out to save data after each run in case computer crashes.
-    %save('ring_S_vects.mat','ring_S_vects');
-    %save('ring_Q_vects.mat', 'ring_Q_vects');
+    save('ring_S_vects.mat','ring_S_vects');
+    save('ring_Q_vects.mat', 'ring_Q_vects');
     %disp(iter);
 end
 
