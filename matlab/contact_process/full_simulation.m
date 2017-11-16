@@ -1,4 +1,4 @@
-function S = full_simulation(t_end, p, q, n)
+function S = full_simulation(t_end, p, q, n, ~)
 %n = 500; % Number of nodes
 %t_end = 100; % Number of steps to run the algorithm.
 
@@ -11,7 +11,7 @@ S(1,:) = rand(1,n) <= init_p;
 % Second argument should be 'complete' or 'ring'
 type = 'ring';
 G = build_adjacency_matrix(n, type);
-max_deg = max(sum(G,2));
+% max_deg = max(sum(G,2));
 
 % paramenters
 %q = 1/3; % recovery probability 0 <= q <= 1
@@ -22,7 +22,11 @@ for t = 1:t_end-1
         if S(t,j) == 1
             S(t+1,j) = rand(1) >= q;
         else
-            S(t+1,j) = rand(1) < p*S(t,:)*G(j,:)';
+            if nargin > 4
+                S(t+1,j) = rand(1) < p;
+            else
+                S(t+1,j) = rand(1) < p*S(t,:)*G(j,:)';
+            end
         end
     end
 end

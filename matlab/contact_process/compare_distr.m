@@ -61,3 +61,19 @@ for i = 1:4
     xlabel('x')
     ylabel('Probability of observing binary(x)')
 end
+
+diff0 = abs(F_full(4,:) - F_full2(4,:));
+diff1 = abs(F_full(4,:) - F_local(4,:));
+diff2 = abs(F_full2(4,:) - F_local(4,:));
+
+disp('norms')
+disp(norm(diff0))
+disp(norm(diff1))
+disp(norm(diff2))
+
+disp('max')
+disp(max(diff0))
+disp(max(diff1))
+disp(max(diff2))
+
+
