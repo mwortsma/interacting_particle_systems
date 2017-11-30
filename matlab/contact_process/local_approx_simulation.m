@@ -1,4 +1,4 @@
-function [S, match] = local_approx_simulation(t_end,p,q,match_col,match_vals)
+function [S, match] = local_approx_simulation(t_end,p,q,match_cols,match_vals)
 % Only run with the first three arguments.
 
 % match_col and match_val are used in the recursive calls, as is the return
@@ -15,8 +15,7 @@ S(1,:) = rand(1,3) <= init_p;
 
 % Optimization: If given match vals, only sample one new initial point.
 if nargin > 3
-    S(1,2) = match_vals(1,2);
-    S(1,match_col) = match_vals(1,match_col);
+    S(1,match_cols) = match_vals(1,:);
 end
 
 for t = 1:t_end-1
@@ -29,7 +28,7 @@ for t = 1:t_end-1
     
     % Optimization: Check for divergence
     if nargin > 3
-        if S(t+1,2) ~= match_vals(t+1,2)
+        if S(t+1,2) ~= match_vals(t+1,(match_cols == 2))
             match = false;
             return
         end
@@ -40,8 +39,7 @@ for t = 1:t_end-1
         S(t+1,1) = rand(1) >= q;
     else
         while 1
-            new_s = [S(1:t,2), S(1:t,1), zeros(t,1)];
-            [Y, match] = local_approx_simulation(t,p,q,1,new_s);
+            [Y, match] = local_approx_simulation(t,p,q,[1 2],[S(1:t,2), S(1:t,1)]);
             if match
                 break
             end
@@ -50,8 +48,8 @@ for t = 1:t_end-1
     end
     
     % Optimization: Check for divergence
-    if nargin > 3 && match_col == 1
-        if S(t+1,1) ~= match_vals(t+1,1)
+    if nargin > 3 && sum(match_cols == 1) > 0
+        if S(t+1,1) ~= match_vals(t+1,(match_cols == 1))
             match = false;
             return
         end
@@ -62,8 +60,7 @@ for t = 1:t_end-1
         S(t+1,3) = rand(1) >= q;
     else
         while 1
-            new_s = [zeros(t,1), S(1:t,3), S(1:t,2)];
-            [Z, match] = local_approx_simulation(t,p,q,3,new_s);
+            [Z, match] = local_approx_simulation(t,p,q,[2 3],[S(1:t,3), S(1:t,2)]);
             if match
                 break
             end
@@ -72,8 +69,8 @@ for t = 1:t_end-1
     end
     
     % Optimization: Check for divergence
-    if nargin > 3 && match_col == 3
-        if S(t+1,3) ~= match_vals(t+1,3)
+    if nargin > 3 && sum(match_cols == 3) > 0
+        if S(t+1,match_cols) ~= match_vals(t+1,(match_cols == 3))
             match = false;
             return
         end

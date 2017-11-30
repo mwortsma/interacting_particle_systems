@@ -1,4 +1,5 @@
-n = 1000; lam = 0.95; t_end = 500000;
+function X = full_simulation(n, lam, t_end)
+%n = 1000; lam = 0.95; t_end = 500000;
 X = zeros(t_end, n);
 
 % Initialization
@@ -24,16 +25,16 @@ for t = 2:t_end
     end
 end
 
-figure(1)
-clf
-imagesc(X)
-colorbar
+%figure(1)
+%clf
+%imagesc(X)
+%colorbar
 
-figure(2)
-clf
-hold on
-plot(sum(X > 0, 2)/n)
-plot(ones(t_end,1)*lam)
+%figure(2)
+%clf
+%hold on
+%plot(sum(X > 0, 2)/n)
+%plot(ones(t_end,1)*lam)
 
 
 
