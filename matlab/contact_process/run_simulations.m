@@ -38,12 +38,12 @@ end
 save('local_sim_data.mat', 'local_sim_data')
 
 %% Obtain Local Simulation Optimized Data
-%local_sim_opt_data = zeros(num_iterations*t_end, 3);
-%index = 1;
-%for iter = 1:num_iterations
-%    S = local_approx_simulation_optimized(t_end, p, q);
-%    local_sim_opt_data(index:index+t_end-1,:) = S;
-%    index = index + t_end;
-%    disp(iter);
-%end
-%save('local_sim_opt_data.mat', 'local_sim_opt_data')
+local_sim_opt_data = zeros(num_iterations*t_end, 3);
+index = 1;
+for iter = 1:num_iterations
+    S = local_approx_simulation_optimized(t_end, p, q);
+    local_sim_opt_data(index:index+t_end-1,:) = S;
+    index = index + t_end;
+    disp(iter);
+end
+save('local_sim_opt_data.mat', 'local_sim_opt_data')

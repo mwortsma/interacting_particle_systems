@@ -1,8 +1,8 @@
-function [X, match] = local_simulation(lam, t_end, match_cols, match_vals)
+function [X, match] = local_simulation(lam, mu, t_end, match_cols, match_vals)
 
 X = zeros(t_end, 11);
 % Initialization
-X(1,:) = poissrnd(-log(1-lam),[1,11]);
+X(1,:) = poissrnd(-log(1-mu*lam),[1,11]);
 if nargin > 3
     X(1,match_cols) = match_vals(1,:);
 end
@@ -15,7 +15,7 @@ for t = 1:t_end-1
     if arrivals(2) || arrivals(3)
         m = false;
         while ~m
-            [Y, m] = local_simulation(lam, t, ...
+            [Y, m] = local_simulation(lam, mu, t, ...
                 [6 5 4 3], [X(1:t,3) X(1:t,4) X(1:t,5) X(1:t,6)]);
         end
         X(t,1) = Y(t,8);
@@ -24,7 +24,7 @@ for t = 1:t_end-1
     if arrivals(9) || arrivals(10)
         m = false;
         while ~m
-            [Z, m] = local_simulation(lam, t, ...
+            [Z, m] = local_simulation(lam, mu, t, ...
                 [9 8 7 6], [X(1:t,6) X(1:t,7) X(1:t,8), X(1:t,9)]);
         end
         X(t,9) = Z(t,5);
@@ -43,7 +43,7 @@ for t = 1:t_end-1
             X(t+1, min_neighbor) = X(t+1,min_neighbor) + 1;
         end
         % Exiting
-        if X(t+1,i) > 0
+        if X(t+1,i) > 0 && rand < 1/mu
             X(t+1,i) = X(t+1,i) - 1;
         end
     end
@@ -54,6 +54,10 @@ for t = 1:t_end-1
 end
 
 match = true;
+
+if nargin <= 3
+    X = X(:,3:9);
+end
 
 %figure(1)
 %clf
