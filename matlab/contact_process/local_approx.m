@@ -1,4 +1,4 @@
-function [S, match] = local_approx_simulation(t_end,p,q,match_cols,match_vals)
+function [S, match] = local_approx(t_end,p,q,match_cols,match_vals)
 % Only run with the first three arguments.
 
 % match_col and match_val are used in the recursive calls, as is the return
@@ -39,7 +39,7 @@ for t = 1:t_end-1
         S(t+1,1) = rand(1) >= q;
     else
         while 1
-            [Y, match] = local_approx_simulation(t,p,q,[1 2],[S(1:t,2), S(1:t,1)]);
+            [Y, match] = local_approx(t,p,q,[1 2],[S(1:t,2), S(1:t,1)]);
             if match
                 break
             end
@@ -60,7 +60,7 @@ for t = 1:t_end-1
         S(t+1,3) = rand(1) >= q;
     else
         while 1
-            [Z, match] = local_approx_simulation(t,p,q,[2 3],[S(1:t,3), S(1:t,2)]);
+            [Z, match] = local_approx(t,p,q,[2 3],[S(1:t,3), S(1:t,2)]);
             if match
                 break
             end

@@ -1,4 +1,4 @@
-function S = full_simulation(t_end, p, q, n, ~)
+function S = full_simulation(t_end, p, q, n)
 %n = 500; % Number of nodes
 %t_end = 100; % Number of steps to run the algorithm.
 
@@ -22,11 +22,7 @@ for t = 1:t_end-1
         if S(t,j) == 1
             S(t+1,j) = rand(1) >= q;
         else
-            if nargin > 4
-                S(t+1,j) = rand(1) < p;
-            else
-                S(t+1,j) = rand(1) < p*S(t,:)*G(j,:)';
-            end
+            S(t+1,j) = rand(1) < p*S(t,:)*G(j,:)';
         end
     end
 end
