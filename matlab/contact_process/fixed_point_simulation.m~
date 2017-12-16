@@ -1,0 +1,78 @@
+function [mu, residuals] = fixed_point_simulation(T,p,q)
+    f = rand(1,2^(3*T));
+    % make sure that the 0th marginal is equal in distribution to nu.
+    % TODO
+    f = f /sum(f);
+    
+    alg_iterations = 10;
+    epsilon = 0.001;
+    
+    residuals = zeros(alg_iterations,1);
+    
+    for alg_iter = 1:alg_iterations
+        f_new = fixed_pt_simulation_one_step(f, T, nu, iters,p,q);
+        residuals(alg_iter) = norm(f_new - f);
+        if residuals(alg_iter) > epsilon; break; end
+    end
+    mu = f_new;
+end
+
+function f_new = fixed_pt_simulation_one_step(f, T, nu, iters,p,q)
+    [l, r] = get_conditional_distributions(f, T);
+    f_new = zeros(2^(3*T + 1), 1);
+    
+    % Do this empirically.
+    inc = 1/iters;
+    for iter = iters
+        index = evolve_system(l,r,nu,T,p,q);
+        f_new(index) = f_new(index) + inc;
+    end
+end
+
+function index = evolve_system(l,r,nu,T,p,q)
+    X = zeros(T + 1, 3);
+    % Draw X(1,:) according to nu
+    % TODO
+    X(1,:) = rand(1,3) > 0.5;
+    
+    % Evolve X according to l and r
+    
+    for t = 1:T-1
+        % Update X(t,2), the middle node.
+        if S(t,2) == 1
+            X(t+1,2) = rand(1) >= q;
+        else
+            X(t+1,2) = rand(1) < p*(X(t,1) + X(t,3));
+        end
+
+        % Update X(t,1), the left node.
+        if X(t,1) == 1
+            X(t+1,1) = rand(1) >= q;
+        else
+            while 1
+                [Y, match] = local_approx(t,p,q,[1 2],[S(1:t,2), S(1:t,1)]);
+                if match
+                    break
+                end
+            end
+            X(t+1,1) = rand(1) < p*(X(t,2) + Y);
+        end
+
+        % Update X(t,3), the right node.
+        if X(t,3) == 1
+            S(t+1,3) = rand(1) >= q;
+        else
+            while 1
+                [Z, match] = local_approx(t,p,q,[2 3],[S(1:t,3), S(1:t,2)]);
+                if match
+                    break
+                end
+            end
+            S(t+1,3) = rand(1) < p*(S(t,2) + Z(t,1));
+        end
+    end
+    
+    % Return the associated index
+    index = mat_to_index(X,T,3);
+end
+

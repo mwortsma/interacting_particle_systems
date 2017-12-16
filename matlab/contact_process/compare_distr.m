@@ -18,7 +18,7 @@ for i = 1:t_end:num_iterations*t_end
         F_local(j,num) = F_local(j,num) + 1;
     end
 end
-F_local_scaled = F_local / (num_iterations/t_end);
+F_local_scaled = F_local / (num_iterations);
 
 F_full = zeros(t_end, 2^(t_end*3));
 
@@ -30,7 +30,7 @@ for i = 1:t_end:num_iterations*t_end
     end
 end
 
-F_full_scaled = F_full / (num_iterations/t_end);
+F_full_scaled = F_full / (num_iterations);
 
 
 F_full2 = zeros(t_end, 2^(t_end*3));
@@ -43,7 +43,7 @@ for i = 1:t_end:num_iterations*t_end
     end
 end
 
-F_full2_scaled = F_full2 / (num_iterations/t_end);
+F_full2_scaled = F_full2 / (num_iterations);
 
 
 F_indep = zeros(t_end, 2^(t_end*3));
@@ -56,7 +56,7 @@ for i = 1:t_end:num_iterations*t_end
     end
 end
 
-F_indep_scaled = F_indep / (num_iterations/t_end);
+F_indep_scaled = F_indep / (num_iterations);
 
 
 for i = 1:4
