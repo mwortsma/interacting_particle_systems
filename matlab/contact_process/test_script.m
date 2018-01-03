@@ -1,5 +1,5 @@
 
-[mu, res] = fixed_point_simulation(3,1/3,1/3);
+%[mu, res] = fixed_point_simulation(3,1/3,1/3);
 plot(mu)
 hold on
 plot(F_full_scaled(3,1:2^9));

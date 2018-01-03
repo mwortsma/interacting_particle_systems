@@ -1,4 +1,4 @@
-function index = evolve_system(l,r,nu,T,p,q)
+function X = evolve_system(l,r,nu,T,p,q)
     X = zeros(T, 3);
     % Draw X(1,:) according to nu
     % TODO
@@ -19,7 +19,7 @@ function index = evolve_system(l,r,nu,T,p,q)
             X(t+1,1) = rand(1) >= q;
         else
             prob_0 = r(t,mat_to_index([X(1:t,2), X(1:t,1)],t,2));
-            if prob_0 < 0; prob_0 = 1/2; end
+            if isnan(prob_0); prob_0 = 1/2; end
             Y = rand(1) > prob_0;
             X(t+1,1) = rand(1) < p*(X(t,2) + Y);
         end
@@ -29,13 +29,10 @@ function index = evolve_system(l,r,nu,T,p,q)
             X(t+1,3) = rand(1) >= q;
         else
             prob_0 = l(t,mat_to_index([X(1:t,3), X(1:t,2)],t,2));
-            if prob_0 < 0; prob_0 = 1/2; end
+            if isnan(prob_0); prob_0 = 1/2; end
             Z = rand(1) > prob_0;
             X(t+1,3) = rand(1) < p*(X(t,2) + Z);
         end
     end
-    
-    % Return the associated index
-    index = mat_to_index(X,T,3);
 end
 
