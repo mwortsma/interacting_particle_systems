@@ -3,7 +3,7 @@ function X = full_simulation(n, lam, t_end)
 X = zeros(t_end, n);
 
 % Initialization
-X(1,:) = poissrnd(-log(1-lam),[1,n]);
+% X(1,:) = poissrnd(-log(1-lam),[1,n]);
 
 get_neighbors_index = @(i) 1 + mod(i-2:i,n);
 
@@ -11,7 +11,7 @@ for t = 2:t_end
     for i = 1:n
         X(t,i) = X(t,i) + X(t-1,i);
         % Entering
-        if rand < lam*(1/n)
+        if rand < lam
             neighbor_index = get_neighbors_index(i);
             neighbor_lengths = X(t-1, neighbor_index);
             [~, j] = min(neighbor_lengths);
@@ -19,7 +19,7 @@ for t = 2:t_end
             X(t, min_neighbor) = X(t,min_neighbor) + 1;
         end
         % Exiting
-        if rand < 1/(n) && X(t-1,i) > 0
+        if X(t-1,i) > 0
             X(t,i) = X(t,i) - 1;
         end
     end
