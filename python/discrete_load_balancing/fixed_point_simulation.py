@@ -8,9 +8,10 @@ def fixed_point_simulation(T,lam,k,epsilon,max_iters,step_iters):
 	# measure on the space of T x 7 matricies with each entry in {0,...,k-1}
 	f = {}
 	cond = [{} for t in range(T)]
+	observed = [{} for t in range(T)]
 
 	for iteration in range(max_iters):
-		new_f, cond = one_iteration(T,lam,k,cond,step_iters)
+		new_f, cond, observed = one_iteration(T,lam,k,cond,observed,step_iters)
 		# Get the L1 norm of new_f - f.
 		residuals.append(sum([abs(new_f[m] - f[m]) for m in new_f if m in f]))
 		residuals[-1] += sum([new_f[m] for m in new_f if m not in f])
@@ -24,33 +25,44 @@ def fixed_point_simulation(T,lam,k,epsilon,max_iters,step_iters):
 	return f, residuals
 
 # Updates l and r from one observation of X
-def update_cond(T,X,cond):
+def update_cond(T,X,cond,observed):
 	ind = lambda i : i + 3
 	for t in range(1, T):
 		X_minus_3_through_0 = X[:t,ind(-3):ind(1)].tostring()
 		X_1_2 = X[t,ind(1)], X[t,ind(2)]
 
 		if X_minus_3_through_0 not in cond[t]:
-			cond[t][X_minus_3_through_0] = [X_1_2]
+			observed[t][X_minus_3_through_0] = 1
+			cond[t][X_minus_3_through_0] = {X_1_2:1}
 		else:
-			cond[t][X_minus_3_through_0].append(X_1_2)
+			observed[t][X_minus_3_through_0] += 1
+			if X_1_2 not in cond[t][X_minus_3_through_0]:
+				cond[t][X_minus_3_through_0][X_1_2] = 1
+			else:
+				cond[t][X_minus_3_through_0][X_1_2] += 1
 
 		X_0_through_3 = X[:t,ind(-3):ind(1)].tostring()
 		X_minus_2_minus_1 = X[t,ind(-2)], X[t,ind(-1)]
 
 		if X_0_through_3 not in cond[t]:
-			cond[t][X_0_through_3] = [X_minus_2_minus_1]
+			observed[t][X_0_through_3] = 1
+			cond[t][X_0_through_3] = {X_minus_2_minus_1:1}
 		else:
-			cond[t][X_0_through_3].append(X_minus_2_minus_1)
+			observed[t][X_0_through_3] += 1
+			if X_minus_2_minus_1 not in cond[t][X_0_through_3]:
+				cond[t][X_0_through_3][X_minus_2_minus_1] = 1
+			else:
+				cond[t][X_0_through_3][X_minus_2_minus_1] += 1
 
 
-def one_iteration(T,lam,k,cond,step_iters):
+def one_iteration(T,lam,k,cond,observed,step_iters):
 	f_new = {}
-	cond = [{} for t in range(T)]
+	cond_new = [{} for t in range(T)]
+	observed_new = [{} for t in range(T)]
 	f_inc = 1.0/(2*step_iters)
 
 	for iteration in range(step_iters):
-		X = evolve_system(T,lam,k,cond)
+		X = evolve_system(T,lam,k,cond,observed)
 		X_rev = np.fliplr(X)
 
 		# update f_new
@@ -67,16 +79,17 @@ def one_iteration(T,lam,k,cond,step_iters):
 			print(iteration*100/step_iters)
 
 		# update l and r
-		update_cond(T,X,cond)
+		update_cond(T,X,cond_new,observed_new)
 
-	return f_new, cond
+	return f_new, cond_new, observed_new
 
 
-def evolve_system(T,lam,k,cond):
+def evolve_system(T,lam,k,cond,observed):
 	# We have 11 queues total that we need to keep track of, -5, -4, ..., 4, 5
 	ind = lambda i : i + 5
 	# X[t,i] represents the legth of queue i at time t.
 	X = np.zeros((T, 11))
+	X[0,:] = np.minimum(np.random.poisson(lam=-np.log(1-lam),size=11), k-1)
 
 	for t in range(0,T-1):
 
@@ -88,12 +101,12 @@ def evolve_system(T,lam,k,cond):
 		# If there is an arrival at queue -4 or -3 then we need to know the value
 		# of queues -5 and -4.
 		if arrival[ind(-4)] or arrival[ind(-3)]:
-			X[t+1,ind(-4)], X[t+1,ind(-5)] = get_left(t+1,cond,X,k)
+			X[t+1,ind(-4)], X[t+1,ind(-5)] = get_left(t+1,cond,X,k,observed,lam)
 
 		# If there is an arrival at queue -4 or -3 then we need to know the value
 		# of queues -5 and -4.
 		if arrival[ind(3)] or arrival[ind(4)]:
-			X[t+1,ind(5)], X[t+1,ind(4)] = get_right(t+1,cond,X,k)
+			X[t+1,ind(5)], X[t+1,ind(4)] = get_right(t+1,cond,X,k,observed,lam)
 
 		# Only need process arrivals from queues -4,...,4
 		for i in range(1,11):
@@ -124,8 +137,12 @@ def evolve_system(T,lam,k,cond):
 
 	return X[:,ind(-3):ind(4)]
 
-def get_sample(T,k):
+
+def get_sample(T,k,lam):
 	X = np.zeros((T,6))
+
+	X[0,:] = np.minimum(np.random.poisson(lam=-np.log(1-lam),size=6), k-1)
+
 	for t in range(0,T-1):
 
 		X[t+1,:] = X[t,:]
@@ -133,10 +150,10 @@ def get_sample(T,k):
 		arrival = np.random.random(6) <= 0.95
 
 		if arrival[1] or arrival[2]:
-			X[t+1,0], X[t+1,1] = get_sample(t+1,k)
+			X[t+1,0], X[t+1,1] = get_sample(t+1,k,lam)
 
 		if arrival[3] or arrival[4]:
-			X[t+1,4], X[t+1,5] = get_sample(t+1,k)
+			X[t+1,4], X[t+1,5] = get_sample(t+1,k,lam)
 
 		# Only need process arrivals from queues -4,...,4
 		for i in range(1,5):
@@ -168,23 +185,26 @@ def get_sample(T,k):
 	return X[-1,2:4]
 
 
-def get_left(t,cond,X,k):
+def get_left(t,cond,X,k,observed,lam):
 	ind = lambda i : i + 5
 	match_array = np.fliplr(X[:t,ind(-3):ind(1)]).tostring()
 	if match_array not in cond[t]:
-		return get_sample(t,k)
-	tuples = cond[t][match_array]
-	del match_array
-	return tuples[np.random.randint(len(tuples))]
+		return get_sample(t,k,lam)
+	return sample_from(cond[t][match_array], observed[t][match_array])
 
-def get_right(t,cond,X,k):
+def get_right(t,cond,X,k,observed,lam):
 	ind = lambda i : i + 5
 	match_array = np.fliplr(X[:t,ind(0):ind(4)]).tostring()
 	if match_array not in cond[t]:
-		return get_sample(t,k)
-	tuples = cond[t][match_array]
-	del match_array
-	return tuples[np.random.randint(len(tuples))]
+		return get_sample(t,k,lam)
+	return sample_from(cond[t][match_array], observed[t][match_array])
+
+def sample_from(tuples,n):
+	rand = np.random.rand(1)
+	s = 0
+	for k in tuples:
+		s += tuples[k]
+		if s > rand: return k
 
 ## Test cases ##
 
@@ -235,10 +255,10 @@ def test_update_l_and_r():
 def main():
 	T = 3
 	lam = 0.95
-	k = 10
+	k = 4
 	epsilon = 0.005
-	max_iters = 3
-	step_iters = 100000000
+	max_iters = 4
+	step_iters = 10000000
 	f,res = fixed_point_simulation(T,lam,k,epsilon,max_iters,step_iters)
 
 	pickle_out = open("data/local_T=%d_step_iters=%d" % (T,step_iters),"wb")

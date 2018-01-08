@@ -25,7 +25,8 @@ def full_simulation(T,lam,n,k):
 	# X[t,i] represents the legth of queue i at time t.
 	X = np.zeros((T, n))
 
-	# Initial conditions: All queues empty.
+	# Initial conditions:
+	X[0,:] = np.minimum(np.random.poisson(lam=-np.log(1-lam),size=n), k-1)
 
 	for t in range(0,T-1):
 
@@ -66,9 +67,9 @@ def main():
 	print(full_simulation(4, 0.95, 10, 4))
 
 	T = 3
-	step_iters = 10000
+	step_iters = 100000
 
-	f = typical_distr(T,0.95,20,10,10,step_iters)
+	f = typical_distr(T,0.95,20,4,10,step_iters)
 	pickle_out = open("data/full_T=%d_step_iters=%d" % (T,step_iters),"wb")
 	pickle.dump(f, pickle_out)
 	pickle_out.close()
