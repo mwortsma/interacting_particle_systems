@@ -67,10 +67,12 @@ def rt_mean_field_iteration(d, T, p, q, steps, nu, cond):
 
     # normalize cond_new
     for t in range(1, T):
-        for p in bin_tuples(t):
-            for children in cond_new[t][p]:
-                if observed[t][p] != 0:
-                    cond_new[t][p][k] = cond_new[t][p][k] / observed[t][p]
+        for p1 in bin_tuples(t):
+        	for p2 in bin_tuples(t):
+        		p = (p1,p2)
+	            for children in cond_new[t][p]:
+	                if observed[t][p] != 0:
+	                    cond_new[t][p][k] = cond_new[t][p][k] / observed[t][p]
 
     return f_new, cond_new
 
