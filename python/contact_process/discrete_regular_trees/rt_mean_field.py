@@ -57,8 +57,8 @@ def rt_mean_field_iteration(d, T, p, q, steps, nu, cond):
         # record the realization in cond_new
         for t in range(1, T):
             for k in range(1, d + 1):
-                other_children = X[t,1:k] + X[t,K:]
-                root_and_child = (tupe(X[:t,0]), tuple(X[:t,k]))
+                other_children = X[t, 1:k] + X[t, K:]
+                root_and_child = (tupe(X[:t, 0]), tuple(X[:t, k]))
                 observed[t][root_and_child] += 1
                 if other_children not in cond_new[t][root_and_child]:
                     cond_new[t][root_and_child][other_children] = 1
@@ -68,11 +68,11 @@ def rt_mean_field_iteration(d, T, p, q, steps, nu, cond):
     # normalize cond_new
     for t in range(1, T):
         for p1 in bin_tuples(t):
-        	for p2 in bin_tuples(t):
-        		p = (p1,p2)
-	            for children in cond_new[t][p]:
-	                if observed[t][p] != 0:
-	                    cond_new[t][p][k] = cond_new[t][p][k] / observed[t][p]
+            for p2 in bin_tuples(t):
+                p = (p1, p2)
+                for children in cond_new[t][p]:
+                    if observed[t][p] != 0:
+                        cond_new[t][p][k] = cond_new[t][p][k] / observed[t][p]
 
     return f_new, cond_new
 
@@ -101,22 +101,21 @@ def init_observations(T):
 
 def rt_realization(d, T, p, q, nu, cond)
     X = np.zeros((T, d + 1))
-    X[0, :] = (int) (np.random.rand(d+1) < nu)
-    for t in range(1,T):
-    	if X[0,t-1] == 0:
-    		X[0,t] = (int) (np.random.rand() < p*sum([X[t-1,1:]]))
-    	else:
-    		X[0,t] = (int) (np.random.rand() > q)
-    	for k in range(1,d+1):
-    		if X[k,t-1] == 0:
-    			root_and_child = (tuple(X[:t,k]), tuple(X[:t,0]))
-    			options = cond[t][root_and_child]
-    			random = np.random.rand()
-    			s = 0
-    			for op in options:
-    				s += options[op]
-    				if s > random:
-    					X[k,t] = (int) (np.random.rand() < p*sum(op))
-    		else:
-    			x[k,t] = (int) (np.random.rand() > q)
-
+    X[0, :] = (int)(np.random.rand(d + 1) < nu)
+    for t in range(1, T):
+        if X[0, t - 1] == 0:
+            X[0, t] = (int)(np.random.rand() < p * sum([X[t - 1, 1:]]))
+        else:
+            X[0, t] = (int)(np.random.rand() > q)
+        for k in range(1, d + 1):
+            if X[k, t - 1] == 0:
+                root_and_child = (tuple(X[:t, k]), tuple(X[:t, 0]))
+                options = cond[t][root_and_child]
+                random = np.random.rand()
+                s = 0
+                for op in options:
+                    s += options[op]
+                    if s > random:
+                        X[k, t] = (int)(np.random.rand() < p * sum(op))
+            else:
+                x[k, t] = (int)(np.random.rand() > q)
