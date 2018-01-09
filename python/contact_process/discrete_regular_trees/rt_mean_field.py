@@ -111,10 +111,10 @@ def rt_realization(d, T, p, q, nu, cond)
     			options = cond[t][root_and_child]
     			random = np.random.rand()
     			s = 0
-    			for k in options:
-    				s += options[k]
+    			for op in options:
+    				s += options[op]
     				if s > random:
-    					X[k,t] = (int) (np.random.rand() < p*sum(k))
+    					X[k,t] = (int) (np.random.rand() < p*sum(op))
     		else:
     			x[k,t] = (int) (np.random.rand() > q)
 
