@@ -1,11 +1,7 @@
 from __future__ import division
-import argparse
 import numpy as np
-import cPickle as pickle
 import matplotlib.pyplot as plt
-import thread
-
-import multiprocessing
+import rt_util
 
 # d is the degree of the tree
 # T is how many timesteps are considered
@@ -16,7 +12,7 @@ import multiprocessing
 # nu is the initial condition (X_i(0) ~ bin(nu)).
 
 
-def rt_mean_field(d, T, p, q, iters, epsilon, steps, nu):
+def rt_local_approx(d, T, p, q, iters, epsilon, steps, nu, file=None):
     # f is the joint distribution over the single neighborhood of the root
     f = {}
     # cond is the conditional law of d-1 children given the root and the dth
@@ -28,8 +24,11 @@ def rt_mean_field(d, T, p, q, iters, epsilon, steps, nu):
 
     one_particle_distances = []
 
+    if file:
+        F = open(file, "w")
+
     for iteration in range(iters):
-        f_new, cond_new, one_particle_distr_new = rt_mean_field_iteration(
+        f_new, cond_new, one_particle_distr_new, bad = rt_local_approx_iteration(
             d, T, p, q, steps, nu, cond)
 
         # distance
@@ -42,21 +41,28 @@ def rt_mean_field(d, T, p, q, iters, epsilon, steps, nu):
 
         op_dist = 0
         op_dist = sum([abs(one_particle_distr[k] -
-                           one_particle_distr_new[k])**l for k in bin_tuples(T)])
+                           one_particle_distr_new[k])**l for k in rt_util.bin_tuples(T)])
+        one_particle_distances.append(op_dist)
+        info_str = 'iteration %d, Full distance %f, OP Distance %f, baddness %f' % (
+            iteration, dist, op_dist, bad)
 
-        print 'iteration %d, Full distance %f, OP Distance %f' % (iteration, dist, op_dist)
-
-        if dist < epsilon:
-            break
+        if file:
+            F.write(info_str)
+            F.write('\n')
+        else:
+            print info_str
 
         f = f_new
         cond = cond_new
         one_particle_distr = one_particle_distr_new
 
-    return f, cond, one_particle_distr, distances
+        if dist < epsilon:
+            break
+
+    return f, cond, one_particle_distr, distances, one_particle_distances, bad
 
 
-def rt_mean_field_iteration(d, T, p, q, steps, nu, cond):
+def rt_local_approx_iteration(d, T, p, q, steps, nu, cond):
     f_new = {}
     cond_new = init_cond(T)
     one_particle_distr_new = init_one_particle_distr(T)
@@ -93,31 +99,21 @@ def rt_mean_field_iteration(d, T, p, q, steps, nu, cond):
 
     # normalize cond_new
     for t in range(1, T):
-        for p1 in bin_tuples(t):
-            for p2 in bin_tuples(t):
+        for p1 in rt_util.bin_tuples(t):
+            for p2 in rt_util.bin_tuples(t):
                 p = (p1, p2)
                 for c in cond_new[t][p]:
                     if observed[t][p] != 0:
                         cond_new[t][p][c] = cond_new[t][p][c] / observed[t][p]
 
-    print bad/steps
-    return f_new, cond_new, one_particle_distr_new
-
-
-# Returns a list (of length 2^z) where the ith element in the
-# list is a tuple (a_1,...,a_z) where a_1,...,a_z are the coefficients
-# when i is written in binary.
-
-# E.g. bin_tuples(4) = [(0, 0), (0, 1), (1, 0), (1, 1)]
-def bin_tuples(z):
-    return [tuple(map(int, (bin(x)[2:].zfill(z)))) for x in range(2**z)]
+    return f_new, cond_new, one_particle_distr_new, bad / steps
 
 
 def init_cond(T):
     cond = [{} for t in range(T)]
     for t in range(1, T):
-        for p1 in bin_tuples(t):
-            for p2 in bin_tuples(t):
+        for p1 in rt_util.bin_tuples(t):
+            for p2 in rt_util.bin_tuples(t):
                 cond[t][(p1, p2)] = {}
     return cond
 
@@ -125,15 +121,15 @@ def init_cond(T):
 def init_observations(T):
     observations = [{} for t in range(T)]
     for t in range(1, T):
-        for p1 in bin_tuples(t):
-            for p2 in bin_tuples(t):
+        for p1 in rt_util.bin_tuples(t):
+            for p2 in rt_util.bin_tuples(t):
                 observations[t][(p1, p2)] = 0.
     return observations
 
 
 def init_one_particle_distr(T):
     one_particle_distr = {}
-    for p in bin_tuples(T):
+    for p in rt_util.bin_tuples(T):
         one_particle_distr[p] = 0.
     return one_particle_distr
 
@@ -144,10 +140,10 @@ def rt_realization(d, T, p, q, nu, cond):
     X = np.zeros((T, d + 1))
     X[0, :] = (np.random.rand(d + 1) < nu).astype(int)
     for t in range(1, T):
-        if X[0, t - 1] == 0:
-            X[0, t] = (int)(np.random.rand() < (p / d) * sum(X[t - 1, 1:]))
+        if X[t - 1, 0] == 0:
+            X[t, 0] = (int)(np.random.rand() < (p / d) * sum(X[t - 1, 1:]))
         else:
-            X[0, t] = (int)(np.random.rand() > q)
+            X[t, 0] = (int)(np.random.rand() > q)
         for k in range(1, d + 1):
             if X[t - 1, k] == 0:
                 root_and_child = (tuple(X[:t, k]), tuple(X[:t, 0]))
@@ -174,16 +170,17 @@ def rt_realization(d, T, p, q, nu, cond):
 
 def main():
     cond = init_cond(3)
-    d = 3
+    d = 4
     T = 4
     p = 2.0 / 3
     q = 1.0 / 3
     nu = 0.5
     cond = init_cond(T)
-    steps = 10000000
+    steps = 10000
     epsilon = 0.005
     iters = 10
-    f,c,opd, res = rt_mean_field(d, T, p, q, iters, epsilon, steps, nu)
+    f, c, opd, res, op_res, bad = rt_local_approx(
+        d, T, p, q, iters, epsilon, steps, nu)
 
 
 if __name__ == "__main__":
