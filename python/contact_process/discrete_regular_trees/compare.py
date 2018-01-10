@@ -7,10 +7,14 @@ import rt_full_simulation
 import rt_local_approx
 import rt_util
 
+import time
+
 
 def compare(d, T, p, q, iters, epsilon, steps, nu):
+    start = time.time()
+
     info = 'd=%d_T=%d_p=%0.3f_q=%0.3f_steps=%0.1E' % (d, T, p, q, steps)
-    name = 'data_' + info
+    name = 'data/data_' + info
     parent = "./"
     rt_util.make_directory(parent, name)
     directory = os.path.join(parent, name)
@@ -31,11 +35,24 @@ def compare(d, T, p, q, iters, epsilon, steps, nu):
     plt.plot([full[p] for p in rt_util.bin_tuples(T)], label='full')
     plt.plot([opd[p] for p in rt_util.bin_tuples(T)], label='local')
     plt.legend(loc=2)
-    info = ('L1 distance = %0.4f ' % sum([abs(full[p] - opd[p]) for p in rt_util.bin_tuples(T)])) + info.replace("_", " ")
+    l1 = sum([abs(full[p] - opd[p]) for p in rt_util.bin_tuples(T)])
+    info = ('L1 distance = %0.4f ' % l1) + info.replace("_", " ")
     plt.title(info)
     plt.xlabel('One Particle Path')
     plt.ylabel('Probability')
     plt.savefig(os.path.join(directory,"fig.png"))
+    F = open(os.path.join(directory,"L1.txt"), "w")
+    F.write('%f' % l1)
+    F.close()
+
+    F = open(os.path.join(directory,"time.txt"), "w")
+    F.write('%f' % l1)
+    F.close()
+
+    end = time.time()
+    F = open(os.path.join(directory,"time.txt"), "w")
+    F.write('%f' % (end-start))
+    F.close()
 
 
 
